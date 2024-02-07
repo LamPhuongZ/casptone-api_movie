@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model tblBanner {
+  banner_id    Int      @id @default(autoincrement())
+  movie_id     Int
+  banner_image String?  @db.VarChar(255)
+  tblMovie     tblMovie @relation(fields: [movie_id], references: [movie_id], onDelete: NoAction, onUpdate: NoAction, map: "tblBanner_ibfk_1")
+
+  @@index([movie_id], map: "movie_id")
+}
+
+model tblBook_ticket {
+  account       Int
+  showTimes_id  Int
+  seat_id       Int?
+  tblUser       tblUser       @relation(fields: [account], references: [account], onDelete: NoAction, onUpdate: NoAction, map: "tblBook_ticket_ibfk_1")
+  tblShow_times tblShow_times @relation(fields: [showTimes_id], references: [showTimes_id], onDelete: NoAction, onUpdate: NoAction, map: "tblBook_ticket_ibfk_2")
+  tblSeat       tblSeat?      @relation(fields: [seat_id], references: [seat_id], onDelete: NoAction, onUpdate: NoAction, map: "tblBook_ticket_ibfk_3")
+
+  @@id([account, showTimes_id])
+  @@index([seat_id], map: "seat_id")
+  @@index([showTimes_id], map: "showTimes_id")
+}
+
+model tblCinema {
+  cinema_id       Int             @id @default(autoincrement())
+  cinema_name     String          @db.VarChar(255)
+  cinemaGroup_id  Int
+  tblCinema_group tblCinema_group @relation(fields: [cinemaGroup_id], references: [cinemaGroup_id], onDelete: NoAction, onUpdate: NoAction, map: "tblCinema_ibfk_1")
+  tblSeat         tblSeat[]
+  tblShow_times   tblShow_times[]
+
+  @@index([cinemaGroup_id], map: "cinemaGroup_id")
+}
+
+model tblCinema_group {
+  cinemaGroup_id   Int              @id @default(autoincrement())
+  cinemaGroup_name String           @db.VarChar(255)
+  address          String           @db.VarChar(255)
+  cinemaSystem_id  Int
+  tblCinema        tblCinema[]
+  tblCinema_system tblCinema_system @relation(fields: [cinemaSystem_id], references: [cinemaSystem_id], onDelete: NoAction, onUpdate: NoAction, map: "tblCinema_group_ibfk_1")
+
+  @@index([cinemaSystem_id], map: "cinemaSystem_id")
+}
+
+model tblCinema_system {
+  cinemaSystem_id   Int               @id @default(autoincrement())
+  cinemaSystem_name String            @db.VarChar(255)
+  logo              String            @db.VarChar(255)
+  tblCinema_group   tblCinema_group[]
+}
+
+model tblMovie {
+  movie_id      Int             @id @default(autoincrement())
+  movie_name    String          @db.VarChar(255)
+  trailer       String?         @db.VarChar(255)
+  movie_image   String?         @db.VarChar(255)
+  description   String?         @db.Text
+  release_day   DateTime?       @db.Date
+  rate          Int?
+  hot           Boolean?
+  coming        Boolean?
+  showing       Boolean?
+  tblBanner     tblBanner[]
+  tblShow_times tblShow_times[]
+}
+
+model tblSeat {
+  seat_id        Int              @id @default(autoincrement())
+  seat_name      String           @db.VarChar(255)
+  seat_type      String           @db.VarChar(255)
+  cinema_id      Int
+  tblBook_ticket tblBook_ticket[]
+  tblCinema      tblCinema        @relation(fields: [cinema_id], references: [cinema_id], onDelete: NoAction, onUpdate: NoAction, map: "tblSeat_ibfk_1")
+
+  @@index([cinema_id], map: "cinema_id")
+}
+
+model tblShow_times {
+  showTimes_id   Int              @id @default(autoincrement())
+  cinema_id      Int
+  movie_id       Int
+  showing_times  DateTime?        @db.DateTime(0)
+  ticket_price   Int?
+  tblBook_ticket tblBook_ticket[]
+  tblCinema      tblCinema        @relation(fields: [cinema_id], references: [cinema_id], onDelete: NoAction, onUpdate: NoAction, map: "tblShow_times_ibfk_1")
+  tblMovie       tblMovie         @relation(fields: [movie_id], references: [movie_id], onDelete: NoAction, onUpdate: NoAction, map: "tblShow_times_ibfk_2")
+
+  @@index([cinema_id], map: "cinema_id")
+  @@index([movie_id], map: "movie_id")
+}
+
+model tblUser {
+  account        Int              @id @default(autoincrement())
+  email          String           @db.VarChar(255)
+  pass_word      String           @db.VarChar(255)
+  full_name      String           @db.VarChar(255)
+  phone          String?          @db.VarChar(20)
+  avatar         String?          @db.VarChar(255)
+  user_type      String           @db.VarChar(50)
+  tblBook_ticket tblBook_ticket[]
+}
